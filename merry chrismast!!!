@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng Giáng Sinh</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #0f5132, #dc3545); /* Nền xanh lá và đỏ Giáng Sinh */
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        #tree-container {
+            width: 400px;
+            height: 400px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        p {
+            font-size: 1.5em;
+            margin-top: 20px;
+            max-width: 600px;
+        }
+        @media (max-width: 600px) {
+            h1 { font-size: 2em; }
+            #tree-container { width: 300px; height: 300px; }
+            p { font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Chúc Mừng Giáng Sinh!</h1>
+    <div id="tree-container"></div>
+    <p>
+        Chúc bạn và gia đình một mùa Giáng Sinh vui vẻ, ấm áp và tràn đầy niềm vui! 
+        Mong năm mới mang đến sức khỏe, hạnh phúc và những điều tốt lành nhất. 
+        Merry Christmas!
+    </p>
+
+    <!-- Thư viện Three.js từ CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Tạo scene, camera và renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000); // Aspect ratio 1:1 cho container vuông
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(400, 400); // Kích thước container
+        document.getElementById('tree-container').appendChild(renderer.domElement);
+
+        // Tạo cây thông đơn giản bằng hình học 3D
+        const treeGroup = new THREE.Group();
+
+        // Thân cây (hình trụ)
+        const trunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1, 8);
+        const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 }); // Màu nâu
+        const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+        trunk.position.y = -0.5;
+        treeGroup.add(trunk);
+
+        // Các tầng lá (hình nón)
+        const layers = 4;
+        for (let i = 0; i < layers; i++) {
+            const layerGeometry = new THREE.ConeGeometry(1 - i * 0.2, 0.8, 8);
+            const layerMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 }); // Màu xanh lá
+            const layer = new THREE.Mesh(layerGeometry, layerMaterial);
+            layer.position.y = i * 0.6;
+            treeGroup.add(layer);
+        }
+
+        // Thêm ngôi sao trên đỉnh
+        const starGeometry = new THREE.OctahedronGeometry(0.2);
+        const starMaterial = new THREE.MeshLambertMaterial({ color: 0xFFD700 }); // Màu vàng
+        const star = new THREE.Mesh(starGeometry, starMaterial);
+        star.position.y = layers * 0.6 + 0.4;
+        treeGroup.add(star);
+
+        scene.add(treeGroup);
+
+        // Đèn trang trí (các hình cầu nhỏ)
+        const lights = [];
+        for (let i = 0; i < 10; i++) {
+            const lightGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+            const lightMaterial = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+            const light = new THREE.Mesh(lightGeometry, lightMaterial);
+            light.position.set(
+                (Math.random() - 0.5) * 1.5,
+                Math.random() * 2 - 0.5,
+                (Math.random() - 0.5) * 1.5
+            );
+            treeGroup.add(light);
+            lights.push(light);
+        }
+
+        // Ánh sáng
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        // Vị trí camera
+        camera.position.z = 3;
+
+        // Controls để xoay bằng chuột/vuốt
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let rotation = { x: 0, y: 0 };
+
+        function onMouseDown(event) {
+            isDragging = true;
+            previousMousePosition.x = event.clientX;
+            previousMousePosition.y = event.clientY;
+        }
+
+        function onMouseMove(event) {
+            if (isDragging) {
+                const deltaX = event.clientX - previousMousePosition.x;
+                const deltaY = event.clientY - previousMousePosition.y;
+                rotation.y += deltaX * 0.01;
+                rotation.x += deltaY * 0.01;
+                treeGroup.rotation.y = rotation.y;
+                treeGroup.rotation.x = rotation.x;
+                previousMousePosition.x = event.clientX;
+                previousMousePosition.y = event.clientY;
+            }
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+        }
+
+        // Sự kiện cho màn hình cảm ứng
+        function onTouchStart(event) {
+            isDragging = true;
+            previousMousePosition.x = event.touches[0].clientX;
+            previousMousePosition.y = event.touches[0].clientY;
+        }
+
+        function onTouchMove(event) {
+            if (isDragging) {
+                const deltaX = event.touches[0].clientX - previousMousePosition.x;
+                const deltaY = event.touches[0].clientY - previousMousePosition.y;
+                rotation.y += deltaX * 0.01;
+                rotation.x += deltaY * 0.01;
+                treeGroup.rotation.y = rotation.y;
+                treeGroup.rotation.x = rotation.x;
+                previousMousePosition.x = event.touches[0].clientX;
+                previousMousePosition.y = event.touches[0].clientY;
+            }
+        }
+
+        function onTouchEnd() {
+            isDragging = false;
+        }
+
+        // Thêm event listeners
+        renderer.domElement.addEventListener('mousedown', onMouseDown);
+        renderer.domElement.addEventListener('mousemove', onMouseMove);
+        renderer.domElement.addEventListener('mouseup', onMouseUp);
+        renderer.domElement.addEventListener('touchstart', onTouchStart);
+        renderer.domElement.addEventListener('touchmove', onTouchMove);
+        renderer.domElement.addEventListener('touchend', onTouchEnd);
+
+        // Hàm render
+        function animate() {
+            requestAnimationFrame(animate);
+            // Tự động xoay nhẹ nếu không kéo
+            if (!isDragging) {
+                treeGroup.rotation.y += 0.005;
+            }
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Điều chỉnh kích thước khi resize cửa sổ
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('tree-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+    </script>
+</body>
+</html>
